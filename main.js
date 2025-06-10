@@ -31,7 +31,7 @@ async function getChefBirthday(id) {
         throw new Error("Errore nel recupero dello chef: " + error.message);
     }
 
-    return user.birthDate;
+    return dayjs(user.birthDate).format("DD/MM/YYYY");
 }
 
 async function logChefBirthday() {
