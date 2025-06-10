@@ -4,22 +4,43 @@
  - Usare userId per ottenere le informazioni dello chef da https://dummyjson.com/users/{userId}
  - Restituire la data di nascita dello chef */
 
+/* Attualmente, se la prima richiesta non trova una ricetta, la seconda richiesta potrebbe comunque essere eseguita causando errori a cascata.
+
+Modifica getChefBirthday(id) per intercettare eventuali errori prima di fare la seconda richiesta. */
+
 async function getChefBirthday(id) {
+    let recipe;
+    try {
+        const recipeResponse = await fetch(`https://dummyjson.com/recipes/${id}`);
+        recipe = await recipeResponse.json();
+        if (recipe.message) {
+            throw new Error(recipe.message);
+        }
+    } catch (error) {
+        throw new Error("Errore nel recupero della ricetta: " + error.message);
+    }
 
-    const recipeResponse = await fetch(`https://dummyjson.com/recipes/${id}`);
-    const recipe = await recipeResponse.json();
-
-    const userId = recipe.userId;
-
-    const userResponse = await fetch(`https://dummyjson.com/users/${userId}`);
-    const user = await userResponse.json();
+    let user;
+    try {
+        const userResponse = await fetch(`https://dummyjson.com/users/${recipe.userId}`);
+        user = await userResponse.json();
+        if (user.message) {
+            throw new Error(user.message);
+        }
+    } catch (error) {
+        throw new Error("Errore nel recupero dello chef: " + error.message);
+    }
 
     return user.birthDate;
 }
 
 async function logChefBirthday() {
-    const birthday = await getChefBirthday(1);
-    console.log("Compleanno dello chef:", birthday);
+    try {
+        const birthday = await getChefBirthday(1);
+        console.log("Data di nascita dello chef:", birthday);
+    } catch (error) {
+        console.error("Errore:", error.message);
+    }
 }
 
 logChefBirthday();
